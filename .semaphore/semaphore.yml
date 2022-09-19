@@ -22,5 +22,6 @@ blocks:
           commands:
             - checkout
             - cache restore
+            - bundle config set deployment 'true'
             - bundle install --path vendor/bundle
             - bundle exec rspec
