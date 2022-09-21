@@ -1,3 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: semaphore-demo-ruby-kubernetes-lb
+spec:
+  selector:
+    app: semaphore-demo-ruby-kubernetes
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 4567
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -12,22 +26,8 @@ spec:
       labels:
         app: semaphore-demo-ruby-kubernetes
     spec:
-      imagePullSecrets:
-      - name: dockerhub
       containers:
-      - name: semaphore-demo-ruby-kubernetes
-        image: $DOCKER_USERNAME/semaphore-demo-ruby-kubernetes:$SEMAPHORE_WORKFLOW_ID
-
----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: semaphore-demo-ruby-kubernetes-lb
-spec:
-  selector:
-    app: semaphore-demo-ruby-kubernetes
-  type: LoadBalancer
-  ports:
-    - port: 80
-      targetPort: 4567
+        - name: semaphore-demo-ruby-kubernetes
+          image: "${ECR_REGISTRY}:${SEMAPHORE_WORKFLOW_ID}"
+      imagePullSecrets:
+        - name: aws-ecr
