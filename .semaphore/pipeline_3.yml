@@ -1,0 +1,46 @@
+version: v1.0
+name: Deploy to Kubernetes
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu2004
+blocks:
+  - name: 'Block #1'
+    task:
+      jobs:
+        - name: Deploy
+          commands:
+            - 'checkout            '
+            - mkdir -p ~/bin
+            - 'curl -o ~/bin/aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.12.7/2019-03-27/bin/linux/amd64/aws-iam-authenticator'
+            - chmod a+x ~/bin/aws-iam-authenticator
+            - 'export PATH=~/bin:$PATH'
+            - sudo pip install awscli
+            - kubectl delete secret aws-ecr || true
+            - 'kubectl create secret docker-registry aws-ecr --docker-server="https://$ECR_REGISTRY" --docker-username=AWS --docker-password="$(aws ecr get-login-password --region ap-southeast-2)"'
+            - 'envsubst < deployment.yml | tee deploy.yml            '
+            - kubectl apply -f deploy.yml
+      secrets:
+        - name: AWS
+      env_vars:
+        - name: AWS_DEFAULT_REGION
+          value: ap-southeast-2
+        - name: ECR_REGISTRY
+          value: 882285717801.dkr.ecr.ap-southeast-2.amazonaws.com/semaphore-demo-ruby-kubernetes
+  - name: Tag latest release
+    task:
+      secrets:
+        - name: AWS
+      env_vars:
+        - name: AWS_DEFAULT_REGION
+          value: ap-southeast-2
+        - name: ECR_REGISTRY
+          value: 882285717801.dkr.ecr.ap-southeast-2.amazonaws.com/semaphore-demo-ruby-kubernetes
+      jobs:
+        - name: Docker tag latest
+          commands:
+            - sudo pip install awscli
+            - aws ecr get-login --no-include-email | bash
+            - 'docker pull "${ECR_REGISTRY}:$SEMAPHORE_WORKFLOW_ID"'
+            - 'docker tag "${ECR_REGISTRY}:$SEMAPHORE_WORKFLOW_ID" "${ECR_REGISTRY}:latest"'
+            - 'docker push "${ECR_REGISTRY}:latest"'

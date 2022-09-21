@@ -24,3 +24,6 @@ blocks:
           value: ap-southeast-2
         - name: ECR_REGISTRY
           value: 882285717801.dkr.ecr.ap-southeast-2.amazonaws.com/semaphore-demo-ruby-kubernetes
+promotions:
+  - name: Deploy to Kubernetes
+    pipeline_file: pipeline_3.yml
