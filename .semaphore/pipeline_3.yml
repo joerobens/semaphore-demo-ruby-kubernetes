@@ -15,7 +15,7 @@ blocks:
             - 'curl -o ~/bin/aws-iam-authenticator https://s3.us-west-2.amazonaws.com/amazon-eks/1.21.2/2021-07-05/bin/linux/amd64/aws-iam-authenticator'
             - chmod a+x ~/bin/aws-iam-authenticator
             - 'export PATH=~/bin:$PATH'
-            - sudo pip install awscli
+            - sudo pip install awscli --upgrade
             - export ECR_PASSWORD=$(aws ecr get-login-password --region ap-southeast-2)
             - kubectl delete secret aws-ecr || true
             - 'kubectl create secret docker-registry aws-ecr --docker-server="https://$ECR_REGISTRY" --docker-username=AWS --docker-password="$ECR_PASSWORD"'
